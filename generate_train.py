@@ -71,7 +71,7 @@ if __name__ == '__main__':
     )
 
     # 创建 train 数据集
-    with h5py.File(f'{dataset_file_prefix}/ms-macro-768-5m-cosine.hdf5', 'w') as train_hdf5:
+    with h5py.File(f'{dataset_file_prefix}/ms-macro2-768-full-cosine.hdf5', 'w') as train_hdf5:
         train_hdf5.create_dataset('text', data=answer_texts)
         train_hdf5.create_dataset('train', data=answer_vectors)
         train_hdf5.attrs["extra_columns"] = ["text"]
