@@ -92,7 +92,7 @@ if __name__ == '__main__':
         models[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
 
     df_train = pd.read_csv(
-        f'{dataset_file_prefix}/collections.tsv',
+        f'{dataset_file_prefix}/collection.tsv',
         sep='\t', header=None, names=['answer-id', 'answer-text'], nrows=limits
     )
 

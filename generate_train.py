@@ -51,7 +51,7 @@ if __name__ == '__main__':
     limits = 10000000  # rows_limit
     gpu_count = torch.cuda.device_count()
     dataset_file_prefix = "/mnt/workspaces/mochix/datasets/ms_macro2"
-    passages_file_path = f'{dataset_file_prefix}/corpus.jsonl'
+    passages_file_path = f'{dataset_file_prefix}/collection.tsv'
 
     # 初始化 model, model 详细信息参考 hugging face:
     # https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2
