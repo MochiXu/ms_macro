@@ -129,7 +129,22 @@ if __name__ == '__main__':
     with h5py.File(f'{dataset_file_prefix}/ms-macro-sparse-768-full-cosine.hdf5', 'w') as train_hdf5:
         train_hdf5.create_dataset('text', data=answer_texts)
         train_hdf5.create_dataset('train', data=answer_vectors)
-        train_hdf5.create_dataset('sparse_ids', data=answer_sparse_dim_ids)
-        train_hdf5.create_dataset('sparse_weights', data=answer_sparse_weights)
+
+        # 创建 int32 变长数组的特殊数据类型
+        dt_uint32 = h5py.special_dtype(vlen=np.dtype('uint32'))
+        dt_float32 = h5py.special_dtype(vlen=np.dtype('float32'))
+
+        sparse_ids_dataset = train_hdf5.create_dataset(
+            'sparse_ids',
+            (len(answer_sparse_dim_ids),),
+            dtype=dt_uint32)
+        sparse_ids_dataset[:] = answer_sparse_dim_ids
+
+        sparse_weights_dataset = train_hdf5.create_dataset(
+            'sparse_weights',
+            (len(answer_sparse_weights),),
+            dtype=dt_float32)
+        sparse_weights_dataset[:] = answer_sparse_weights
+
         train_hdf5.attrs["extra_columns"] = ["text", "sparse_vector"]
         train_hdf5.attrs["extra_columns_type"] = ["string", "array(tuple)"]
