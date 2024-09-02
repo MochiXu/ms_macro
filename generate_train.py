@@ -32,14 +32,21 @@ def get_train_texts_and_vectors(
         # 对 texts 文本数据分批
         text_batches = [texts[i:i + batch_size] for i in range(0, len(texts), batch_size)]
         # 每个 texts batch 将会在一个 GPU 上执行 embedding
-        batch_in_model = [models[i % cuda_count] for i in range(len(text_batches))]
+        batch_in_text_model = [text_models[i % cuda_count] for i in range(len(text_batches))]
         # 用来生成 sparse vector 的 model
-        sparse_vector_models = [models_sparse_vector[i % cuda_count].module for i in range(len(text_batches))]
+        batch_in_sparse_model = [sparse_models[i % cuda_count].module for i in range(len(text_batches))]
         # 用来生成 sparse vector 的 tokenizer
-        sparse_vector_tokenizers = [tokenizers_sparse_vector[i % cuda_count] for i in range(len(text_batches))]
+        batch_in_sparse_tokenizer = [sparse_tokenizers[i % cuda_count] for i in range(len(text_batches))]
+
         text_vector_batches = list(
             tqdm.tqdm(
-                executor.map(gpu_compute, text_batches, batch_in_model, sparse_vector_models, sparse_vector_tokenizers),
+                executor.map(
+                    gpu_compute,
+                    text_batches,
+                    batch_in_text_model,
+                    batch_in_sparse_model,
+                    batch_in_sparse_tokenizer
+                ),
                 total=total_batches,
                 desc="Processing corpus(mc_macro answers)"
             ))
@@ -67,27 +74,30 @@ if __name__ == '__main__':
 
     # 初始化 model, model 详细信息参考 hugging face:
     # https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2
-    models = [torch.nn.DataParallel(
+    text_models = [torch.nn.DataParallel(
         SentenceTransformer('sentence-transformers/paraphrase-multilingual-mpnet-base-v2')
     ) for _ in range(0, gpu_count)]
 
     # 生成 sparse vector 的模型
-    models_sparse_vector = [torch.nn.DataParallel(
-        AutoModelForMaskedLM.from_pretrained(sparse_vector_model_id)
-    ) for _ in range(0, gpu_count)]
+    sparse_models = [torch.nn.DataParallel(
+        AutoModelForMaskedLM.from_pretrained(
+            sparse_vector_model_id,
+            device=torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu')
+        )
+    ) for i in range(0, gpu_count)]
 
-    tokenizers_sparse_vector = []
-
-    # sparse vector 用到的 tokenizer, 不涉及到向量计算
-    # tokenizer_sparse_vector = AutoTokenizer.from_pretrained(sparse_vector_model_id)
+    # sparse vector 使用的 tokenizers
+    sparse_tokenizers = [
+        AutoTokenizer.from_pretrained(
+            sparse_vector_model_id,
+            device=torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
+        for i in range(0, gpu_count)
+    ]
 
     # move model to gpu
     for i in range(0, gpu_count):
-        models[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
-        models_sparse_vector[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
-        tokenizers_sparse_vector.append(
-            AutoTokenizer.from_pretrained(sparse_vector_model_id, device=torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
-        )
+        text_models[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
+        sparse_models[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
 
     answer_ids, answer_texts, answer_vectors, answer_sparse_dim_ids, answer_sparse_weights = (
         get_train_texts_and_vectors(

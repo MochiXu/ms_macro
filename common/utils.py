@@ -32,6 +32,7 @@ def compute_sparse_vector(texts: List[str], model, tokenizer=AutoTokenizer.from_
     Returns:
     torch.Tensor: Computed vector.
     """
+    print(model.device)
     tokens = tokenizer(texts, padding=True, return_tensors="pt").to(model.device)
 
     output = model(**tokens)
@@ -54,5 +55,4 @@ def compute_sparse_vector(texts: List[str], model, tokenizer=AutoTokenizer.from_
 def gpu_compute(texts: List[str], vector_model, sparse_model, sparse_tokenizer):
     vectors = texts_to_embeddings(texts, vector_model)
     sparse_dim_ids, sparse_weights = compute_sparse_vector(texts, sparse_model, sparse_tokenizer)
-    print(f"vectors: {vectors}\nsparse_dim_ids: {sparse_dim_ids}\nsparse_weights: {sparse_weights}\n")
     return vectors, sparse_dim_ids, sparse_weights
