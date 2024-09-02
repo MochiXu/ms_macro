@@ -34,7 +34,7 @@ def get_train_texts_and_vectors(
         # 每个 texts batch 将会在一个 GPU 上执行 embedding
         batch_in_model = [models[i % cuda_count] for i in range(len(text_batches))]
         # 用来生成 sparse vector 的 model
-        sparse_vector_models = [models_sparse_vector[i % cuda_count] for i in range(len(text_batches))]
+        sparse_vector_models = [models_sparse_vector[i % cuda_count].module for i in range(len(text_batches))]
         # 用来生成 sparse vector 的 tokenizer
         sparse_vector_tokenizers = [tokenizers_sparse_vector[i % cuda_count] for i in range(len(text_batches))]
         text_vector_batches = list(

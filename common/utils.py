@@ -32,7 +32,7 @@ def compute_sparse_vector(texts: List[str], model, tokenizer=AutoTokenizer.from_
     Returns:
     torch.Tensor: Computed vector.
     """
-    tokens = tokenizer(texts, padding=True, return_tensors="pt")
+    tokens = tokenizer(texts, padding=True, return_tensors="pt").to(model.device)
 
     output = model(**tokens)
     logits, attention_mask = output.logits, tokens.attention_mask
