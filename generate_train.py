@@ -56,10 +56,9 @@ def get_train_texts_and_vectors(
         sparse_vectors_dim_ids = []
         sparse_vectors_weights = []
         for batch in text_vector_batches:
-            for text_vector, sparse_vector_dim_ids, sparse_vector_weights in batch:
-                text_vectors.append(text_vector)
-                sparse_vectors_dim_ids.append(sparse_vector_dim_ids)
-                sparse_vectors_weights.append(sparse_vector_weights)
+            text_vectors.extend(batch[0])
+            sparse_vectors_dim_ids.extend(batch[1])
+            sparse_vectors_weights.extend(batch[2])
 
     return ids, texts, text_vectors, sparse_vectors_dim_ids, sparse_vectors_weights
 
