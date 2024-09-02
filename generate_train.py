@@ -109,7 +109,7 @@ if __name__ == '__main__':
             train_file_path=passages_file_path,
             rows_limit=limits,
             batch_size=texts_batch_size,
-            cuda_count=gpu_count
+            cuda_count=len(gpu_devices)
         ))
 
     # 存储为 json
