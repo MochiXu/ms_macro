@@ -1,4 +1,5 @@
 import concurrent.futures
+import json
 from typing import Tuple, List, Any
 
 import numpy as np
@@ -64,10 +65,11 @@ def get_train_texts_and_vectors(
 
 
 if __name__ == '__main__':
-    texts_batch_size = 256
-    num_threads = 4
-    limits = 10000000  # rows_limit
+    texts_batch_size = 64
+    num_threads = 2
+    limits = 100000  # rows_limit
     gpu_count = torch.cuda.device_count()
+    store_json = True
     dataset_file_prefix = "/mnt/workspaces/mochix/datasets/ms_macro2"
     # dataset_file_prefix = "dataset_files"
     passages_file_path = f'{dataset_file_prefix}/collection.tsv'
@@ -107,6 +109,19 @@ if __name__ == '__main__':
             cuda_count=gpu_count
         ))
 
+    # 存储为 json
+    if store_json:
+        data = [
+            {
+                "row_id": row_id,
+                "text": text,
+                "dim_ids": dim_ids,
+                "weights": weights
+            }
+            for row_id, text, dim_ids, weights in zip(answer_ids, answer_texts, answer_sparse_dim_ids, answer_sparse_weights)
+        ]
+        with open(f"{dataset_file_prefix}/ms-macro-sparse-train.json", "w") as f:
+            json.dump(data, f)
     # 创建 train 数据集
     with h5py.File(f'{dataset_file_prefix}/ms-macro-sparse-768-full-cosine.hdf5', 'w') as train_hdf5:
         train_hdf5.create_dataset('text', data=answer_texts)

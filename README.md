@@ -55,3 +55,10 @@ key:test	size:6980	dtype:float64	shape:(6980, 768)
 
 [ms-macro2-768-full-cosine-dev-query.hdf5 42MB](https://mqdb-release-1253802058.cos.ap-beijing.myqcloud.com/datasets/ms-macro2-768-full-cosine-dev-query.hdf5)
 
+
+### Developer
+
+制作数据集过程中可能需要提前设置环境变量
+```bash
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+```
