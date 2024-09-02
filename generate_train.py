@@ -82,6 +82,7 @@ if __name__ == '__main__':
     # move model to gpu
     for i in range(0, gpu_count):
         models[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
+        models_sparse_vector[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
 
     answer_ids, answer_texts, answer_vectors, answer_sparse_dim_ids, answer_sparse_weights = (
         get_train_texts_and_vectors(
