@@ -6,10 +6,13 @@ import h5py
 def get_hdf5_info(file_path: str):
     print(f"HDF5 INFO ----- {file_path.split('/')[-1]}")
     with h5py.File(file_path, 'r') as train_hdf5:
-        print(f"attrs keys:{train_hdf5.attrs.keys()}")
-        print(f"datasets:{train_hdf5.keys()}")
+        print(f"\nattrs keys:{train_hdf5.attrs.keys()}")
+        for attr_key in train_hdf5.attrs.keys():
+            print(f"attr_key:{attr_key}, attr_value:{train_hdf5.attrs[attr_key]}")
+        print(f"\ndatasets:{train_hdf5.keys()}")
         for k in train_hdf5.keys():
             print(f"key:{k}\tsize:{len(train_hdf5[k])}\tdtype:{train_hdf5[k].dtype}\tshape:{train_hdf5[k].shape}")
+            print(f"value:{train_hdf5[k][:1]}")
 
 
 def get_query_and_answer(file_path: str, range_left: int = 10, range_right: int = 20):
@@ -30,5 +33,5 @@ def get_query_and_answer(file_path: str, range_left: int = 10, range_right: int 
 
 directory_prefix = "/Volumes/970EVO/vector-db-benchmark-datasets/downloaded/ms-macro2-768-full-cosine"
 # get_hdf5_info(f"{directory_prefix}/ms-macro2-768-full-cosine.hdf5")
-# get_hdf5_info(f"{directory_prefix}/ms-macro2-768-full-cosine-dev-query.hdf5")
-get_query_and_answer(f"{directory_prefix}/ms-macro2-768-full-cosine-dev-query.hdf5", 20, 25)
+get_hdf5_info(f"{directory_prefix}/ms-macro2-768-full-cosine-dev-query.hdf5")
+# get_query_and_answer(f"{directory_prefix}/ms-macro2-768-full-cosine-dev-query.hdf5", 20, 25)
