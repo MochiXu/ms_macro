@@ -36,7 +36,7 @@ def get_train_texts_and_vectors(
         # 用来生成 sparse vector 的 model
         sparse_vector_models = [models_sparse_vector[i % cuda_count] for i in range(len(text_batches))]
         # 用来生成 sparse vector 的 tokenizer
-        sparse_vector_tokenizers = [tokenizer_sparse_vector] * len(text_batches)
+        sparse_vector_tokenizers = [tokenizers_sparse_vector[i % cuda_count] for i in range(len(text_batches))]
         text_vector_batches = list(
             tqdm.tqdm(
                 executor.map(gpu_compute, text_batches, batch_in_model, sparse_vector_models, sparse_vector_tokenizers),
@@ -76,13 +76,18 @@ if __name__ == '__main__':
         AutoModelForMaskedLM.from_pretrained(sparse_vector_model_id)
     ) for _ in range(0, gpu_count)]
 
+    tokenizers_sparse_vector = [torch.nn.DataParallel(
+        AutoTokenizer.from_pretrained(sparse_vector_model_id)
+    ) for _ in range(0, gpu_count)]
+
     # sparse vector 用到的 tokenizer, 不涉及到向量计算
-    tokenizer_sparse_vector = AutoTokenizer.from_pretrained(sparse_vector_model_id)
+    # tokenizer_sparse_vector = AutoTokenizer.from_pretrained(sparse_vector_model_id)
 
     # move model to gpu
     for i in range(0, gpu_count):
         models[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
         models_sparse_vector[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
+        tokenizers_sparse_vector[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
 
     answer_ids, answer_texts, answer_vectors, answer_sparse_dim_ids, answer_sparse_weights = (
         get_train_texts_and_vectors(
