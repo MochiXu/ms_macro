@@ -68,12 +68,14 @@ if __name__ == '__main__':
     texts_batch_size = 64
     num_threads = 2
     limits = 100000  # rows_limit
-    gpu_count = torch.cuda.device_count()
     store_json = True
     dataset_file_prefix = "/mnt/workspaces/mochix/datasets/ms_macro2"
     # dataset_file_prefix = "dataset_files"
     passages_file_path = f'{dataset_file_prefix}/collection.tsv'
     skip_gpus = [2]
+    gpu_count = torch.cuda.device_count()
+    gpu_devices = [torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu') for i in range(gpu_count) if
+                   i not in skip_gpus]
     # 初始化 model, model 详细信息参考 hugging face:
     # https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2
     text_models = [torch.nn.DataParallel(
@@ -86,21 +88,21 @@ if __name__ == '__main__':
             sparse_vector_model_id,
             # device=torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu')
         )
-    ) for i in range(0, gpu_count-len(skip_gpus))]
+    ) for _ in gpu_devices]
 
     # sparse vector 使用的 tokenizers
     sparse_tokenizers = [
         AutoTokenizer.from_pretrained(
             sparse_vector_model_id,
-            device=torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
-        for i in range(0, gpu_count) if i not in skip_gpus
+            device=gpu_device
+        )
+        for gpu_device in gpu_devices
     ]
 
     # move model to gpu
-    for i in range(0, gpu_count):
-        if i not in skip_gpus:
-            text_models[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
-            sparse_models[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
+    for i in range(0, len(gpu_devices)):
+        text_models[i].to(gpu_devices[i])
+        sparse_models[i].to(gpu_devices[i])
 
     answer_ids, answer_texts, answer_vectors, answer_sparse_dim_ids, answer_sparse_weights = (
         get_train_texts_and_vectors(
