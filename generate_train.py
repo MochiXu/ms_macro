@@ -73,7 +73,7 @@ if __name__ == '__main__':
     dataset_file_prefix = "/mnt/workspaces/mochix/datasets/ms_macro2"
     # dataset_file_prefix = "dataset_files"
     passages_file_path = f'{dataset_file_prefix}/collection.tsv'
-
+    skip_gpus = [2]
     # 初始化 model, model 详细信息参考 hugging face:
     # https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2
     text_models = [torch.nn.DataParallel(
@@ -86,20 +86,21 @@ if __name__ == '__main__':
             sparse_vector_model_id,
             # device=torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu')
         )
-    ) for _ in range(0, gpu_count)]
+    ) for i in range(0, gpu_count-len(skip_gpus))]
 
     # sparse vector 使用的 tokenizers
     sparse_tokenizers = [
         AutoTokenizer.from_pretrained(
             sparse_vector_model_id,
             device=torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
-        for i in range(0, gpu_count)
+        for i in range(0, gpu_count) if i not in skip_gpus
     ]
 
     # move model to gpu
     for i in range(0, gpu_count):
-        text_models[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
-        sparse_models[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
+        if i not in skip_gpus:
+            text_models[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
+            sparse_models[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
 
     answer_ids, answer_texts, answer_vectors, answer_sparse_dim_ids, answer_sparse_weights = (
         get_train_texts_and_vectors(
@@ -118,7 +119,8 @@ if __name__ == '__main__':
                 "dim_ids": dim_ids,
                 "weights": weights
             }
-            for row_id, text, dim_ids, weights in zip(answer_ids, answer_texts, answer_sparse_dim_ids, answer_sparse_weights)
+            for row_id, text, dim_ids, weights in
+            zip(answer_ids, answer_texts, answer_sparse_dim_ids, answer_sparse_weights)
         ]
         with open(f"{dataset_file_prefix}/ms-macro-sparse-train.json", "w") as f:
             json.dump(data, f)
