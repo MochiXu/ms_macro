@@ -82,9 +82,9 @@ if __name__ == '__main__':
     sparse_models = [torch.nn.DataParallel(
         AutoModelForMaskedLM.from_pretrained(
             sparse_vector_model_id,
-            device=torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu')
+            # device=torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu')
         )
-    ) for i in range(0, gpu_count)]
+    ) for _ in range(0, gpu_count)]
 
     # sparse vector 使用的 tokenizers
     sparse_tokenizers = [
