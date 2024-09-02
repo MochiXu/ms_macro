@@ -76,9 +76,7 @@ if __name__ == '__main__':
         AutoModelForMaskedLM.from_pretrained(sparse_vector_model_id)
     ) for _ in range(0, gpu_count)]
 
-    tokenizers_sparse_vector = [torch.nn.DataParallel(
-        AutoTokenizer.from_pretrained(sparse_vector_model_id)
-    ) for _ in range(0, gpu_count)]
+    tokenizers_sparse_vector = []
 
     # sparse vector 用到的 tokenizer, 不涉及到向量计算
     # tokenizer_sparse_vector = AutoTokenizer.from_pretrained(sparse_vector_model_id)
@@ -87,7 +85,9 @@ if __name__ == '__main__':
     for i in range(0, gpu_count):
         models[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
         models_sparse_vector[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
-        tokenizers_sparse_vector[i].to(torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
+        tokenizers_sparse_vector.append(
+            AutoTokenizer.from_pretrained(sparse_vector_model_id, device=torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu'))
+        )
 
     answer_ids, answer_texts, answer_vectors, answer_sparse_dim_ids, answer_sparse_weights = (
         get_train_texts_and_vectors(
