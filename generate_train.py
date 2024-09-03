@@ -68,6 +68,7 @@ if __name__ == '__main__':
     num_threads = 2
     limits = 100000  # rows_limit
     store_json = True
+    store_hdf5 = False
     dataset_file_prefix = "/mnt/workspaces/mochix/datasets/ms_macro2"
     # dataset_file_prefix = "dataset_files"
     passages_file_path = f'{dataset_file_prefix}/collection.tsv'
@@ -125,26 +126,27 @@ if __name__ == '__main__':
         ]
         with open(f"{dataset_file_prefix}/ms-macro-sparse-train.json", "w") as f:
             json.dump(data, f)
-    # 创建 train 数据集
-    with h5py.File(f'{dataset_file_prefix}/ms-macro-sparse-768-full-cosine.hdf5', 'w') as train_hdf5:
-        train_hdf5.create_dataset('text', data=answer_texts)
-        train_hdf5.create_dataset('train', data=answer_vectors)
+    if store_hdf5:
+        # 创建 train 数据集
+        with h5py.File(f'{dataset_file_prefix}/ms-macro-sparse-768-full-cosine.hdf5', 'w') as train_hdf5:
+            train_hdf5.create_dataset('text', data=answer_texts)
+            train_hdf5.create_dataset('train', data=answer_vectors)
 
-        # 创建 int32 变长数组的特殊数据类型
-        dt_uint32 = h5py.special_dtype(vlen=np.dtype('uint32'))
-        dt_float32 = h5py.special_dtype(vlen=np.dtype('float32'))
+            # 创建 int32 变长数组的特殊数据类型
+            dt_uint32 = h5py.special_dtype(vlen=np.dtype('uint32'))
+            dt_float32 = h5py.special_dtype(vlen=np.dtype('float32'))
 
-        sparse_ids_dataset = train_hdf5.create_dataset(
-            'sparse_ids',
-            (len(answer_sparse_dim_ids),),
-            dtype=dt_uint32)
-        sparse_ids_dataset[:] = answer_sparse_dim_ids
+            sparse_ids_dataset = train_hdf5.create_dataset(
+                'sparse_ids',
+                (len(answer_sparse_dim_ids),),
+                dtype=dt_uint32)
+            sparse_ids_dataset[:] = answer_sparse_dim_ids
 
-        sparse_weights_dataset = train_hdf5.create_dataset(
-            'sparse_weights',
-            (len(answer_sparse_weights),),
-            dtype=dt_float32)
-        sparse_weights_dataset[:] = answer_sparse_weights
+            sparse_weights_dataset = train_hdf5.create_dataset(
+                'sparse_weights',
+                (len(answer_sparse_weights),),
+                dtype=dt_float32)
+            sparse_weights_dataset[:] = answer_sparse_weights
 
-        train_hdf5.attrs["extra_columns"] = ["text", "sparse_vector"]
-        train_hdf5.attrs["extra_columns_type"] = ["string", "array(tuple)"]
+            train_hdf5.attrs["extra_columns"] = ["text", "sparse_vector"]
+            train_hdf5.attrs["extra_columns_type"] = ["string", "array(tuple)"]
