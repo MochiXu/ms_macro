@@ -21,7 +21,7 @@ def texts_to_embeddings(texts: List[str], model):
     return embeddings.cpu().tolist()
 
 
-def compute_sparse_vector(texts: List[str], model, tokenizer=AutoTokenizer.from_pretrained(sparse_vector_model_id)):
+def compute_sparse_vector(texts: List[str], model, tokenizer=AutoTokenizer.from_pretrained(sparse_vector_model_id), max_len=512):
     """
     Computes a vector from logits and attention mask using ReLU, log, and max operations.
 
@@ -32,6 +32,7 @@ def compute_sparse_vector(texts: List[str], model, tokenizer=AutoTokenizer.from_
     Returns:
     torch.Tensor: Computed vector.
     """
+    texts = [text[:max_len] for text in texts]
     tokens = tokenizer(texts, padding=True, return_tensors="pt").to(model.device)
     output = model(**tokens)
     logits, attention_mask = output.logits, tokens.attention_mask
