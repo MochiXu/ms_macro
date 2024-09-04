@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 
-sparse_vector_model_id = 'naver/splade-cocondenser-ensembledistil'
+from common.config import sparse_vector_model_id
 
 
 def convert_bytes_to_str(text):

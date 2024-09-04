@@ -7,10 +7,9 @@ import pandas as pd
 import torch
 import tqdm
 from sentence_transformers import SentenceTransformer
-import torch.nn.functional as F
 import h5py
 
-from common.utils import convert_bytes_to_str, texts_to_embeddings, sparse_vector_model_id, gpu_compute
+from common.utils import convert_bytes_to_str, sparse_vector_model_id, gpu_compute
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 
 
@@ -80,13 +79,12 @@ if __name__ == '__main__':
     # https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2
     text_models = [torch.nn.DataParallel(
         SentenceTransformer('sentence-transformers/paraphrase-multilingual-mpnet-base-v2')
-    ) for _ in range(0, gpu_count)]
+    ) for _ in range(0, len(gpu_devices))]
 
     # 生成 sparse vector 的模型
     sparse_models = [torch.nn.DataParallel(
         AutoModelForMaskedLM.from_pretrained(
             sparse_vector_model_id,
-            # device=torch.device(f'cuda:{i}' if torch.cuda.is_available() else 'cpu')
         )
     ) for _ in gpu_devices]
 
