@@ -141,7 +141,7 @@ if __name__ == '__main__':
             query_dev_file_path=f'{dataset_file_prefix}/queries.dev.small.tsv',
             test_dev_file_path=f'{dataset_file_prefix}/qrels.dev.small.tsv',
             batch_size=texts_batch_size,
-            cuda_count=gpu_count,
+            cuda_count=len(gpu_devices),
             exist_answer_ids=df_train['answer-id'].tolist()
         ))
 
