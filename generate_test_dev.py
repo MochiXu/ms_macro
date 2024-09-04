@@ -127,7 +127,7 @@ if __name__ == '__main__':
     ]
 
     # move model to gpu
-    for i in range(0, gpu_count):
+    for i in range(0, len(gpu_devices)):
         text_models[i].to(gpu_devices[i])
         sparse_models[i].to(gpu_devices[i])
 
